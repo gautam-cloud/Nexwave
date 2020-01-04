@@ -1,0 +1,83 @@
+TRIGGER 
+CREATE OR REPLACE TRIGGER secure_emp
+BEFORE INSERT ON emp
+BEGIN
+IF (to_char(sysdate,'DY') in ('SAT','SUN')) OR
+(TO_CHAR(SYSDATE,'HH24:MI')
+NOT BETWEEN '08:00' AND '18:00') THEN
+RAISE_APPLICATION_ERROR(-20500,'You may insert into EMP TABLE ONLY DURING normal business hours.');
+end if;
+end;
+/
+
+
+
+CREATE OR REPLACE TRIGGER secure_emp
+BEFORE INSERT OR UPDATE OF sal ON emp
+FOR EACH ROW
+BEGIN
+IF NOT(:NEW.job IN ('ANALYST','PRESIDENT')) AND :NEW.sal >5000 THEN
+RAISE_APPLICATION_ERROR(-20202,'emp cannot earn more than 15000');
+END IF;
+END;
+  /
+
+
+CREATE TABLE audit_emp(
+user_name Varchar(20),
+time_stamp date,
+id Number(6),
+old_last_name Varchar(25),
+new_last_name Varchar(25),
+old_title Varchar(10),
+new_title Varchar(10),
+old_salary NUMBER(8,2),
+new_salary Number(8,2))
+
+CREATE OR REPLACE TRIGGER audit_emp_values
+BEFORE DELETE OR INSERT OR UPDATE ON emp
+FOR EACH ROW
+BEGIN
+INSERT INTO audit_emp (user_name,time_stamp,id,old_last_name,new_last_name,old_title,new_title,old_salary,new_salary)
+VALUES(USER,sysdate,:OLD.empno,:old.ename,:new.ename,:old.job,:new.job,:old.sal,:new.sal);
+END;
+  /
+
+
+MASTER DETIAL REPORT USING SQL CURSORS
+DECLARE 
+CURSOR C1 IS SELECT * FROM DEPT;
+CURSOR C2 (PDNO NUMBER) IS SELECT * FROM EMP WHERE DEPTNO=PDNO;
+BEGIN
+FOR VDEP IN C1
+LOOP
+DBMS_OUTPUT.PUT_LINE('-----------------');
+DBMS_OUTPUT.PUT_LINE(VDEP.DEPTNO||' '|| VDEP.DNAME);
+DBMS_OUTPUT.PUT_LINE('-----------------');
+FOR
+EREC IN C2(VDEP.DEPTNO)
+LOOP
+DBMS_OUTPUT.PUT_LINE(EREC.EMPNO ||' '||EREC.ENAME||' '||EREC.DEPTNO);
+END LOOP;
+END LOOP;
+END;
+
+
+CREATE TABLE log_trig_table(user_id Varchar(20),log_date Date, action Varchar(20));
+CREATE OR REPLACE TRIGGER logon_trig
+After Logon on schema 
+begin
+insert into log_trig_table values(user,sysdate,'logging on');
+end;
+CREATE OR REPLACE TRIGGER logoff_trig
+Before Logoff on schema 
+begin
+insert into log_trig_table values(user,sysdate,'logging off');
+end;
+NOW EXIT THE SQLPLUS
+LOGIN AGAIN 
+AND SELECT * FROM LOG_TRIG_TABLE;
+U WILL SEE THE LAST LOGDATE AND ACTION 
+
+
+
