@@ -1,0 +1,37 @@
+1)Create Project
+django-admin startproject Myproject
+2)Run the server
+python manage.py runserver
+Open tab in browser and type http://127.0.0.1:8000/admin/
+3)Create admin credentails
+Create Username and password for admin app
+python manage.py createsuperuser
+We need to create a table now as it is giving error
+4)create schema(makemigrations) and execute schema on db(migrate)
+python manage.py makemigrations
+python manage.py migrate
+Now again run this
+python manage.py createsuperuser
+5)Create app
+python manage.py startapp home
+A new folder is created
+Project doesnot know about app
+    1)Go to setting.py add 'home' in INSTALLED_APPS
+    2)Go to urls.py, from that it will go to various apps
+    3)add path('',include(home.urls)) in urls_pattern and change import path to import path,include import home.url
+    #from browser url the control goes to myprog/urls (it checks for full url but if not in path list then it will break the url which will be satisfied by '' thus it will go to home/urls.pyand then to home/urls.py and admin/urls then from home/urls.py it goes to views.py and then we wrote a function def homepage
+    4)Copy urls.py file from Myproject to home
+    5)Change file as from django.contrib import admin
+    from django.urls import path,include
+    from.import views
+
+    urlpatterns = [path('',views.homepage)]
+    6)Open views.py
+    from django.shortcuts import render,HttpResponse
+    def homepage(request):
+    return HttpResponse('Welcome')
+
+    Now run the server
+
+Noe add this path('about/',views.aboutpage) in home/urls.py
+
